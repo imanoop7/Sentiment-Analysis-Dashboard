@@ -24,7 +24,7 @@ class SentimentAnalyzer:
     def __init__(self, model_name):
         self.llm = Ollama(model=model_name)
         self.prompt = ChatPromptTemplate.from_messages([
-            ("system", "You are a sentiment analysis expert. Analyze the sentiment of the given text and provide a classification (positive, negative, or neutral), a confidence score between 0 and 1, and a brief summary. Return your analysis in JSON format."),
+            ("system", "You are a sentiment analysis expert. Analyze the sentiment of the given text and respond with ONLY ONE WORD: 'positive', 'negative', or 'neutral'."),
             ("human", "Analyze the sentiment of the following text: {text}")
         ])
         self.output_parser = StrOutputParser()
@@ -35,41 +35,39 @@ class SentimentAnalyzer:
             result = self.chain.invoke({"text": text})
             st.write("Raw model output:", result)  # Debug output
             
-            try:
-                # Try to parse the result as JSON
-                parsed_result = json.loads(result)
-                return {
-                    'classification': parsed_result['classification'].lower(),
-                    'confidence': float(parsed_result['confidence']),
-                    'summary': parsed_result['summary']
-                }
-            except json.JSONDecodeError:
-                # If JSON parsing fails, try to extract information from the text
-                lines = result.split('\n')
-                classification = confidence = summary = None
-                for line in lines:
-                    if line.lower().startswith('sentiment:'):
-                        classification = line.split(':')[1].strip().lower()
-                    elif line.lower().startswith('confidence:'):
-                        try:
-                            confidence = float(line.split(':')[1].strip())
-                        except ValueError:
-                            confidence = 0.5  # Default value if parsing fails
-                    elif line.lower().startswith('summary:'):
-                        summary = line.split(':')[1].strip()
-                
-                if classification and confidence is not None and summary:
-                    return {
-                        'classification': classification,
-                        'confidence': confidence,
-                        'summary': summary
-                    }
-                else:
-                    raise ValueError("Could not extract required information from the model output")
+            # Extract sentiment from the output
+            sentiment = self.extract_sentiment(result)
+            
+            st.write("Extracted sentiment:", sentiment)  # Debug output
+            
+            # Ensure the sentiment is one of the expected values
+            if sentiment not in ['positive', 'negative', 'neutral']:
+                raise ValueError(f"Unexpected sentiment: {sentiment}")
+            
+            return {
+                'classification': sentiment,
+                'confidence': 1.0,  # Default confidence
+                'summary': "Summary not available"  # Default summary
+            }
         except Exception as e:
             st.error(f"An error occurred during sentiment analysis: {str(e)}")
             st.error(f"Raw output: {result}")  # Debug output
             return None
+
+    def extract_sentiment(self, text):
+        # List of possible sentiment words
+        sentiments = ['positive', 'negative', 'neutral']
+        
+        # Convert text to lowercase for case-insensitive matching
+        text = text.lower()
+        
+        # Check for each sentiment word in the text
+        for sentiment in sentiments:
+            if sentiment in text:
+                return sentiment
+        
+        # If no sentiment is found, return 'unknown'
+        return 'unknown'
 
 # Caching the SentimentAnalyzer instance
 @st.cache_resource
@@ -179,11 +177,13 @@ def main():
             results = []
             progress_bar = st.progress(0)
             for i, text in enumerate(texts):
+                st.write(f"Analyzing text {i+1}: {text[:100]}...")  # Debug output
                 with st.spinner(f"Analyzing text {i+1}/{len(texts)}..."):
                     try:
                         result = analyzer.analyze_sentiment(text)
                         if result:
                             results.append(result)
+                            st.success(f"Successfully analyzed text {i+1}")
                         else:
                             st.warning(f"Failed to analyze text {i+1}. Skipping...")
                     except Exception as e:
@@ -197,8 +197,6 @@ def main():
                     with st.expander(f"Analysis {i+1}"):
                         st.write(f"**Text:** {texts[i][:100]}...")
                         st.write(f"**Sentiment:** {result['classification']}")
-                        st.write(f"**Confidence:** {result['confidence']:.2f}")
-                        st.write(f"**Summary:** {result['summary']}")
                         
                         col1, col2 = st.columns(2)
                         with col1:
@@ -211,9 +209,6 @@ def main():
                 sentiment_counts = pd.Series(sentiments).value_counts()
                 st.subheader("Overall Sentiment Distribution")
                 st.bar_chart(sentiment_counts)
-                
-                avg_confidence = sum(r['confidence'] for r in results) / len(results)
-                st.write(f"Average confidence score: {avg_confidence:.2f}")
             else:
                 st.error("No valid results were obtained. Please try again or check your input.")
                 st.error("If the problem persists, try a different model or check your Ollama installation.")
