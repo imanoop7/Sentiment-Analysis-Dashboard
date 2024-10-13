@@ -1,0 +1,12 @@
+streamlit
+langchain
+langchain-community
+ollama
+plotly
+wordcloud
+matplotlib
+pandas
+nltk
+
+
+
