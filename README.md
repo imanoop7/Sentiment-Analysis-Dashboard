@@ -3,7 +3,8 @@
 ## Overview
 This project is an Advanced Sentiment Analysis Dashboard built using Streamlit and LangChain. It leverages various Large Language Models (LLMs) through Ollama to perform sentiment analysis on user-provided text or batch inputs via CSV files.
 
-For a detailed guide on how this project was built, check out the article: [Beginner's Guide to Building an Advanced Sentiment Analysis Dashboard with Streamlit and Ollama](https://medium.com/@mauryaanoop3/beginners-guide-to-building-an-advanced-sentiment-analysis-dashboard-with-streamlit-and-ollama-ba09023a91fa)
+For a detailed guide on how this project was built, check out the article: 
+[Beginner's Guide to Building an Advanced Sentiment Analysis Dashboard with Streamlit and Ollama](https://medium.com/@mauryaanoop3/beginners-guide-to-building-an-advanced-sentiment-analysis-dashboard-with-streamlit-and-ollama-ba09023a91fa)
 
 ## Features
 - Single text and batch sentiment analysis
@@ -82,11 +83,3 @@ Contributions to improve the dashboard are welcome. Please feel free to submit i
 
 This project is open-source and available under the [MIT License](LICENSE).
 
-## Acknowledgments
-
-Created by Anoop Maurya using Streamlit and LangChain.
-
-## Learn More
-
-For a step-by-step guide on how this dashboard was created, check out the accompanying article:
-[Beginner's Guide to Building an Advanced Sentiment Analysis Dashboard with Streamlit and Ollama](https://medium.com/@mauryaanoop3/beginners-guide-to-building-an-advanced-sentiment-analysis-dashboard-with-streamlit-and-ollama-ba09023a91fa)
